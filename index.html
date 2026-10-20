@@ -486,6 +486,70 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 @keyframes heelLiftL { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-28deg); } }
 @keyframes heelLiftR { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(28deg); } }
 
+/* 판 번호 · 운동 종류 표시 */
+.stage-head { display: flex; gap: 8px; justify-content: center; align-items: center; }
+.round-chip {
+  font-family: "Orbitron", monospace;
+  font-size: 14px; font-weight: 700;
+  padding: 4px 12px; border-radius: 999px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1.5px solid #475569; color: #e2e8f0;
+}
+.cat-badge { font-size: 14px; font-weight: 900; padding: 4px 12px; border-radius: 999px; color: #0f172a; }
+.cat-aero { background: #fca5a5; }
+.cat-str  { background: #93c5fd; }
+.cat-flex { background: #86efac; }
+
+/* 안전 약속 */
+.tip-line {
+  font-size: clamp(14px, 1.45vw, 17px);
+  font-weight: 700;
+  color: #fcd34d;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 4px 14px;
+  border-radius: 10px;
+}
+
+/* 버티기 종목 스톱워치 */
+.hold-timer {
+  font-family: "Orbitron", monospace;
+  font-size: clamp(30px, 3.4vw, 42px);
+  font-weight: 900;
+  color: #67e8f9;
+  text-shadow: 0 0 12px rgba(103, 232, 249, 0.5);
+  margin-top: 2px;
+}
+
+.metal-pill-btn:disabled { opacity: 0.45; cursor: default; transform: none; filter: none; }
+
+/* 3·2·1 카운트다운 */
+.countdown-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(11, 16, 27, 0.6);
+  z-index: 5;
+  pointer-events: none;
+}
+.countdown-overlay span {
+  font-family: "Black Han Sans", "Noto Sans KR", sans-serif;
+  font-size: clamp(90px, 12vw, 150px);
+  color: var(--gold-bright);
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.8), 0 0 30px rgba(250, 204, 21, 0.5);
+  animation: cdPop 0.8s ease-out;
+}
+.countdown-overlay.go { background: transparent; animation: cdFade 0.7s ease-in forwards; }
+@keyframes cdPop { 0% { transform: scale(1.7); opacity: 0; } 30% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.95); opacity: 1; } }
+@keyframes cdFade { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
+
+/* 카메라 판정 */
+.character-stage.cam-mode { background: #000; border: 2px solid #475569; box-shadow: 0 8px 24px rgba(0,0,0,0.6); height: 228px; max-width: 380px; }
+.character-stage.cam-mode video { display: none; }
+.character-stage.cam-mode canvas { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cam-status { font-size: 13px; font-weight: 700; color: #a5f3fc; background: rgba(0,0,0,0.3); padding: 3px 12px; border-radius: 8px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.metal-pill-btn.small { min-width: 0; padding: 9px 18px; font-size: clamp(15px, 1.5vw, 18px); }
+.metal-pill-btn.cam-on { background: linear-gradient(180deg, #86efac 0%, #22c55e 48%, #15803d 100%); }
+
 .confetti { position: absolute; top: -20px; font-size: 30px; animation: fall linear forwards; pointer-events: none; }
 @keyframes fall { to { transform: translateY(90vh) rotate(360deg); } }
 
@@ -678,19 +742,22 @@ const CAT = {
 // 단계별 새로운 3가지 운동 (유산소 1 · 근력 1 · 유연성 1)
 const EXERCISES = [
   // 1단계 (3종)
-  { lv: 1, id: "jj",     t: "aero", n: "팔벌려뛰기",       g: "머리 위 손뼉 치며<br>10번 먼저 뛰기!", yt: "https://www.youtube.com/watch?v=k5Fbkq-4O5k" },
-  { lv: 1, id: "squat",  t: "str",  n: "투명 의자 스쿼트", g: "오래 버티는 사람이 승리!", yt: "https://www.youtube.com/shorts/KSZHNIPLFgg" },
-  { lv: 1, id: "toe",    t: "flex", n: "다리찢기",         g: "더 넓게 다리 찢는 사람이 승리!", yt: "https://www.youtube.com/shorts/41ilH_GuVgU" },
+// hold: true → 오래 버티기 종목 (시작 후 스톱워치가 돌아가고, 승리 버튼을 누르면 버틴 시간이 기록됨)
+// tip: 화면에 함께 보이는 안전 약속
+  { lv: 1, id: "jj",     t: "aero", n: "팔벌려뛰기",       g: "머리 위 손뼉 치며<br>10번 먼저 뛰기!", tip: "착지는 발 앞꿈치로 사뿐히", cam: "jack", target: 10, yt: "https://www.youtube.com/watch?v=k5Fbkq-4O5k" },
+  { lv: 1, id: "squat",  t: "str",  n: "투명 의자 스쿼트", g: "오래 버티는 사람이 승리!", tip: "등은 벽에, 무릎은 발끝 뒤에", hold: true, yt: "https://www.youtube.com/shorts/KSZHNIPLFgg" },
+  { lv: 1, id: "toe",    t: "flex", n: "다리찢기",         g: "더 넓게 다리 찢는 사람이 승리!", tip: "반동 주지 않기, 아프면 바로 멈추기", yt: "https://www.youtube.com/shorts/41ilH_GuVgU" },
 
   // 2단계 (새로운 3종)
-  { lv: 2, id: "hk",     t: "aero", n: "무릎 높이 뛰기",   g: "배꼽 높이까지 양발<br>15번 먼저 뛰기!", yt: "https://www.youtube.com/shorts/_lREgK7rx68" },
-  { lv: 2, id: "plank",  t: "str",  n: "플랭크 버티기",    g: "엎드려 일자로<br>오래 버티는 사람이 승리!", yt: "https://www.youtube.com/shorts/cH3J2mHHD1o" },
-  { lv: 2, id: "side",   t: "flex", n: "옆구리 쭉 늘리기", g: "양쪽 번갈아<br>10번 먼저 늘리기!", yt: "https://www.youtube.com/shorts/glSWZOI01bE" },
+  { lv: 2, id: "hk",     t: "aero", n: "무릎 높이 뛰기",   g: "배꼽 높이까지 양발<br>15번 먼저 뛰기!", tip: "허리 펴고 팔도 함께 흔들기", cam: "highknee", target: 15, yt: "https://www.youtube.com/shorts/_lREgK7rx68" },
+  { lv: 2, id: "plank",  t: "str",  n: "플랭크 버티기",    g: "엎드려 일자로<br>오래 버티는 사람이 승리!", tip: "엉덩이가 처지거나 들리지 않게", hold: true, cam: "plank", yt: "https://www.youtube.com/shorts/cH3J2mHHD1o" },
+  { lv: 2, id: "side",   t: "flex", n: "옆구리 쭉 늘리기", g: "양쪽 번갈아<br>10번 먼저 늘리기!", tip: "천천히 늘리고 숨 참지 않기", yt: "https://www.youtube.com/shorts/glSWZOI01bE" },
 
   // 3단계 (새로운 3종)
-  { lv: 3, id: "cross",  t: "aero", n: "크로스잭",         g: "팔다리 X자로 교차하며<br>15번 먼저 뛰기!", yt: "https://www.youtube.com/shorts/bkMn2yFbZ-M" },
-  { lv: 3, id: "jsquat", t: "str",  n: "스쿼트 점프",      g: "앉았다가 높이 점프<br>10번 먼저 하기!", yt: "https://www.youtube.com/shorts/VlBg1hs6O6g" },
-  { lv: 3, id: "calf",   t: "flex", n: "발뒤꿈치 들기",    g: "발뒤꿈치 높이 들었다 내리기<br>20번 먼저 하기!", yt: "https://www.youtube.com/shorts/PhD4Vz4BZ58" }
+  { lv: 3, id: "cross",  t: "aero", n: "크로스잭",         g: "팔다리 X자로 교차하며<br>15번 먼저 뛰기!", tip: "옆 친구와 팔 간격 넉넉히", yt: "https://www.youtube.com/shorts/bkMn2yFbZ-M" },
+  { lv: 3, id: "jsquat", t: "str",  n: "스쿼트 점프",      g: "앉았다가 높이 점프<br>10번 먼저 하기!", tip: "착지할 때 무릎 살짝 굽히기", cam: "squat", target: 10, yt: "https://www.youtube.com/shorts/VlBg1hs6O6g" },
+  // 발뒤꿈치 들기는 종아리 근력 운동이라 '근력'으로 바로잡음 (3단계 유연성 종목은 추후 교체 필요)
+  { lv: 3, id: "calf",   t: "str",  n: "발뒤꿈치 들기",    g: "발뒤꿈치 높이 들었다 내리기<br>20번 먼저 하기!", tip: "천천히 올라가고 천천히 내려오기", yt: "https://www.youtube.com/shorts/PhD4Vz4BZ58" }
 ];
 
 const LEVEL_INFO = {
@@ -953,13 +1020,384 @@ function beep(type) {
       o.connect(g); g.connect(audioCtx.destination);
       o.start(now + delay); o.stop(now + delay + d);
     };
-    if (type === "start") { tone(523, 0.1, 0); tone(659, 0.18, 0.09); }
+    if (type === "tick") { tone(440, 0.12, 0); }
+    else if (type === "start") { tone(523, 0.1, 0); tone(659, 0.18, 0.09); }
     else if (type === "win") { tone(523, 0.1, 0); tone(659, 0.1, 0.08); tone(784, 0.22, 0.16); }
     else if (type === "final") { [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.2, i * 0.11)); }
   } catch (e) {}
 }
 
-const getName = p => ($("name" + p).value.trim() || (p === 1 ? "왼쪽 짝꿍" : "오른쪽 짝꿍"));
+// 학생이 이름 칸에 <, > 같은 기호를 넣어도 화면이 깨지지 않게
+const escapeHtml = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+const getName = p => escapeHtml($("name" + p).value.trim() || (p === 1 ? "왼쪽 짝꿍" : "오른쪽 짝꿍"));
+const fmtSec = s => s.toFixed(1) + "초";
+
+let cdTimer = null, holdTimer = null;
+function clearTimers() {
+  clearTimeout(cdTimer); cdTimer = null;
+  clearInterval(holdTimer); holdTimer = null;
+}
+
+// ───────── 카메라 판정 (MediaPipe Pose, 2인 동시) ─────────
+// 판정 기준은 '위 Down 맨몸 판정기 v0.7.4'의 판정부(JUDGE)를 그대로 가져와 양쪽 짝꿍에게 하나씩 붙임
+/*JUDGE-START*/
+const LEVELS={
+  squat:{easy:0.28, normal:0.4, hard:0.6},      // 앉은 깊이(0 선 자세 ~ 1 허벅지 수평) 이만큼 넘어야 1회
+  jack:{easy:0.95, normal:1.15, hard:1.35},     // 발목 사이 거리 ÷ 어깨너비 가 이만큼 넘어야 '다리 벌림'
+  jackJump:{easy:0, normal:0.07, hard:0.12},     // 박자마다 두 발이 함께 떠야 하는 높이(몸통 길이 비율) — 쉽게는 점프 안 봄
+  lunge:{easy:0.35, normal:0.5, hard:0.7},       // 런지 내려간 깊이(0 선 자세 ~ 1 엉덩이가 다리 길이의 40%만큼 내려감, 다리를 앞뒤로 벌렸을 때만 참)
+  burpeeJump:{easy:0, normal:0.06, hard:0.1},    // 버피 마지막 만세 점프에서 두 발이 떠야 하는 높이 — 쉽게는 점프 안 봄
+  pushup:{easy:0.35, normal:0.5, hard:0.7},      // 팔굽혀펴기 내려간 깊이(팔꿈치 각도·어깨가 손 쪽으로 내려간 정도)
+  situp:{easy:50, normal:62, hard:75},           // 윗몸일으키기: 몸통이 바닥에서 이 각도(도)까지 일어나야 1회
+  plank:{easy:0.12, normal:0.08, hard:0.05},     // 플랭크: 엉덩이가 어깨~발목 선에서 벗어나도 되는 정도(몸 길이 비율)
+  highknee:{easy:-0.45, normal:-0.3, hard:-0.15}, // 무릎 높이 들기: (엉덩이 높이 - 무릎 높이) ÷ 허벅지 길이 가 이보다 커야 1회 (0 = 엉덩이 높이)
+  balance:{easy:0.07, normal:0.1, hard:0.15},    // 외발 서기: 두 발목 높이 차이 ÷ 다리 길이 가 이보다 커야 '한 발 든 것'
+  climber:{easy:125, normal:110, hard:95},       // 마운틴 클라이머: 어깨-엉덩이-무릎 각도가 이보다 작아져야(무릎을 가슴 쪽으로) 1회
+  legraise:{easy:45, normal:60, hard:75},        // 레그 레이즈: 다리가 바닥에서 이 각도(도)까지 올라가야 1회
+  wallpush:{easy:0.35, normal:0.5, hard:0.65}    // 벽 팔굽혀펴기: 팔꿈치를 굽힌 정도(0 다 폄 ~ 1 직각 가까이)
+};
+function Counter(){ this.resetBase(); }
+Counter.prototype.resetBase=function(){ this.count=0; this.best=0; this.streak=0; this.lastRep=-99; this.times=[]; this.partial=0; this.fast=0; this.why=''; this.whyT=-99; this.visible=false; this.full=false; this.meter=0; this.phase=''; this.lastT=0; };
+Counter.prototype.rep=function(t){ this.count++; this.streak=(t-this.lastRep<4)?this.streak+1:1; this.best=Math.max(this.best,this.streak); this.lastRep=t; this.times.push(t); };
+Counter.prototype.hint=function(t,w){ this.why=w; this.whyT=t; if(w==='fast') this.fast++; else this.partial++; };
+Counter.prototype.rate=function(){ const t=this.lastT, a=this.times.filter(x=>t-x<=20); return t<3?0:Math.round(a.length*60/Math.min(20,t)); };
+Counter.prototype.state=function(){ return {count:this.count,best:this.best,partial:this.partial,fast:this.fast,why:this.why,whyT:this.whyT,visible:this.visible,full:this.full,meter:this.meter,phase:this.phase,ready:this.ready!==false,rate:this.rate(),lastRep:this.lastRep}; };
+const vis=(lm,i)=>lm[i]&&(lm[i].visibility===undefined||lm[i].visibility>0.4);
+
+function SquatJudge(level){ Counter.call(this); this.setLevel(level||'normal'); this.reset(); }
+SquatJudge.prototype=Object.create(Counter.prototype);
+SquatJudge.prototype.setLevel=function(l){ this.th=LEVELS.squat[l]||0.6; };
+SquatJudge.prototype.line=function(){ return this.th; };
+SquatJudge.prototype.reset=function(){ this.resetBase(); this.rebase(); this.moved=false; };
+// 기준(선 자세)을 처음부터 다시 잡음 — 시작할 때, 화면 밖으로 나갔다 왔을 때, 자리를 옮겼을 때
+SquatJudge.prototype.rebase=function(){ this.r0=null; this.rs=null; this.h0=null; this.hs=null; this.anc=null; this.n=0; this.phase='up'; this.downT=0; this.maxPart=0; this.ready=false; this.meter=0; };
+SquatJudge.prototype.push=function(t,lm){
+  this.lastT=t; const v=i=>vis(lm,i);
+  this.visible=v(11)||v(12)||v(0);
+  // 화면 안에 실제로 보이는 관절만 씀 — 발이 화면 밖으로 나가면 모델이 짐작한 위치로 잘못 셈
+  const inF=i=>lm[i]&&(lm[i].visibility===undefined||lm[i].visibility>0.55)&&lm[i].y>0.01&&lm[i].y<0.985&&lm[i].x>0.01&&lm[i].x<0.99;
+  const legs=[[23,25,27],[24,26,28]].filter(([h,k,a])=>inF(h)&&inF(k)&&inF(a)&&lm[a].y-lm[k].y>0.02&&lm[a].y>lm[h].y);
+  this.full=legs.length>0;
+  if(!this.full){ if(this.n) this.rebase(); return this.state(); }
+  const avg=f=>legs.reduce((s,g)=>s+f(g),0)/legs.length;
+  const ay=avg(([h,k,a])=>lm[a].y), ax=avg(([h,k,a])=>lm[a].x);
+  // 발 위치(바닥)가 기준 — 스쿼트를 해도 발은 그대로라서, 발이 움직였으면 자리를 옮긴 것(다가오거나 물러남)
+  if(this.anc&&(Math.abs(ay-this.anc.y)>0.045||Math.abs(ax-this.anc.x)>0.08)){ this.rebase(); this.moved=true; }
+  if(!this.anc) this.anc={x:ax,y:ay}; else { this.anc.x+=(ax-this.anc.x)*0.05; this.anc.y+=(ay-this.anc.y)*0.05; }
+  // 깊이 두 가지: ① 엉덩이가 무릎 높이 쪽으로 온 정도  ② 발에서 엉덩이까지 높이가 줄어든 정도
+  const r=avg(([h,k,a])=>(lm[a].y-lm[h].y)/(lm[a].y-lm[k].y));
+  const hgt=avg(([h,k,a])=>lm[a].y-lm[h].y);
+  this.rs=this.rs===null?r:this.rs+(r-this.rs)*0.5;
+  this.hs=this.hs===null?hgt:this.hs+(hgt-this.hs)*0.5;
+  if(this.r0===null){ this.r0=this.rs; this.h0=this.hs; }
+  const standing=this.phase==='up'&&this.meter<0.15;
+  if(this.rs>this.r0) this.r0+=(this.rs-this.r0)*0.3; else if(standing) this.r0+=(this.rs-this.r0)*0.01;
+  if(this.hs>this.h0) this.h0+=(this.hs-this.h0)*0.3; else if(standing) this.h0+=(this.hs-this.h0)*0.01;
+  this.n++; this.ready=this.n>15; if(this.ready) this.moved=false;
+  const dR=(this.r0-this.rs)/Math.max(0.35,this.r0-1);
+  const dH=(this.h0-this.hs)/(0.45*this.h0);
+  this.meter=Math.max(0,Math.min(1.3,(dR+dH)/2));
+  if(!this.ready) return this.state();
+  const d=this.meter;
+  if(this.phase==='up'){
+    if(d>this.th){ this.phase='down'; this.downT=t; }
+    else { if(d>this.maxPart) this.maxPart=d; if(d<0.1){ if(this.maxPart>this.th*0.55) this.hint(t,'shallow'); this.maxPart=0; } }
+  } else if(d<0.15){
+    this.phase='up'; this.maxPart=0;
+    if(t-this.downT>=0.3) this.rep(t); else this.hint(t,'fast');
+  }
+  return this.state();
+};
+SquatJudge.prototype.state=function(){ const s=Counter.prototype.state.call(this); s.moved=this.moved; return s; };
+
+function JackJudge(level){ Counter.call(this); this.setLevel(level||'normal'); this.reset(); }
+JackJudge.prototype=Object.create(Counter.prototype);
+JackJudge.prototype.setLevel=function(l){ this.th=LEVELS.jack[l]||1.15; this.jumpTh=LEVELS.jackJump[l]??0.07; };
+/* 4박자가 1회: ① 다리 벌리고 팔 어깨 높이(옆으로) → ② 차렷 → ③ 다리 벌리고 만세(머리 위로 쭉) → ④ 차렷
+   step 0~3 = 다음에 해야 할 박자. 순서를 건너뛰면 세지 않고 알려 줌 */
+JackJudge.prototype.line=function(){ return 1.2; };
+JackJudge.prototype.reset=function(){ this.resetBase(); this.step=0; this.stepT=0; this.seenArms=false; this.seenLegs=false; this.ready=true; this.phase='s0'; this.floor=null; this.air=false; this.jumpWarned=false; };
+JackJudge.prototype.push=function(t,lm){
+  this.lastT=t; const v=i=>vis(lm,i);
+  this.visible=v(11)&&v(12);
+  // 손목은 만세 때 화면 위로 나가도 모델이 짐작한 자리를 씀 — 몸통과 발만 꼭 보여야 함
+  this.full=[11,12,23,24,27,28].every(v)&&lm[15]&&lm[16];
+  if(!this.full) return this.state();
+  const shY=(lm[11].y+lm[12].y)/2, hipY=(lm[23].y+lm[24].y)/2, torso=Math.max(0.05,hipY-shY);
+  const shW=Math.max(0.03,Math.abs(lm[11].x-lm[12].x));
+  const wHi=Math.max(lm[15].y,lm[16].y), wLo=Math.min(lm[15].y,lm[16].y);   // 낮은 쪽 손목·높은 쪽 손목
+  const wSpan=Math.abs(lm[15].x-lm[16].x)/shW;
+  const sp=Math.abs(lm[27].x-lm[28].x)/shW;
+  const armsDown=wLo>shY+0.35*torso;                                         // 두 손 다 허리 쪽 = 차렷
+  const armsUp=wHi<shY-0.35*torso;                                           // 두 손 다 머리 높이 위 = 만세
+  const armsT=Math.abs(wHi-shY)<0.3*torso&&Math.abs(wLo-shY)<0.3*torso&&wSpan>2.2;  // 두 손 어깨 높이로 옆으로 쭉
+  const legsOpen=sp>this.th, legsClosed=sp<this.th*0.72;
+  const closed=armsDown&&legsClosed;
+  // 점프: 바닥(발목이 가장 낮게 있던 높이)에서 두 발이 '함께' 떴는지 — 한 발씩 옮기면 안 됨
+  const ayL=lm[27].y, ayR=lm[28].y, ay=Math.max(ayL,ayR);
+  if(this.floor===null||ay>this.floor) this.floor=ay; else this.floor+=(ay-this.floor)*0.02;
+  if(Math.min(this.floor-ayL,this.floor-ayR)>this.jumpTh*torso) this.air=true;
+  const jumped=this.jumpTh<=0||this.air;
+  const want=this.step;                         // 0: 어깨  1: 차렷  2: 만세  3: 차렷
+  const ok=(want===0&&legsOpen&&armsT)||(want===2&&legsOpen&&armsUp)||((want===1||want===3)&&closed);
+  if(this.step>0&&t-this.stepT>5) this.step=0;  // 5초 넘게 다음 박자가 없으면 처음부터
+  if(ok&&t-this.stepT>=0.12&&!jumped&&!this.jumpWarned){ this.hint(t,'jump'); this.jumpWarned=true; }
+  if(ok&&t-this.stepT>=0.12&&jumped){
+    this.step=(this.step+1)%4; this.stepT=t; this.seenArms=this.seenLegs=false; this.air=false; this.jumpWarned=false;
+    if(this.step===0) this.rep(t);
+  } else if(want===0||want===2){
+    // 벌려야 할 차례: 반만 하거나 순서가 바뀐 것 알려 주기
+    if(legsOpen) this.seenLegs=true;
+    if(armsT||armsUp) this.seenArms=true;
+    if(want===0&&legsOpen&&armsUp&&!this.warned){ this.hint(t,'orderT'); this.warned=true; }
+    else if(want===2&&legsOpen&&armsT&&!this.warned){ this.hint(t,'orderU'); this.warned=true; }
+    if(closed){ if(!this.warned&&(this.seenArms||this.seenLegs)&&!(this.seenArms&&this.seenLegs)) this.hint(t,this.seenArms?'legs':'arms'); this.seenArms=this.seenLegs=false; this.warned=false; }
+  }
+  this.phase='s'+this.step;
+  this.meter=this.step/4*1.2;
+  return this.state();
+};
+JackJudge.prototype.state=function(){ const s=Counter.prototype.state.call(this); s.step=this.step; return s; };
+/* 옆에서 볼 때 더 잘 보이는 쪽(왼쪽·오른쪽) 관절 묶음 고르기 */
+function sideOf(lm){
+  const sc=ids=>ids.reduce((a,i)=>a+((lm[i]&&lm[i].visibility!==undefined)?lm[i].visibility:1),0);
+  return sc([11,13,15,23,25,27])>=sc([12,14,16,24,26,28])?{S:11,E:13,W:15,H:23,K:25,A:27}:{S:12,E:14,W:16,H:24,K:26,A:28};
+}
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function angleAt(a,b,c){ const v1=[a.x-b.x,a.y-b.y], v2=[c.x-b.x,c.y-b.y]; const d=Math.hypot(...v1)*Math.hypot(...v2)||1; return Math.acos(Math.max(-1,Math.min(1,(v1[0]*v2[0]+v1[1]*v2[1])/d)))*180/Math.PI; }
+const seen=(lm,i,th)=>lm[i]&&(lm[i].visibility===undefined||lm[i].visibility>(th||0.4));
+/* 플랭크: 몸이 바닥과 나란하고(옆모습) 엉덩이가 어깨~발목 선 가까이 있을 때만 초가 올라감 — 흐트러지면 멈추고, 바로잡으면 이어서 */
+function PlankJudge(level){ Counter.call(this); this.setLevel(level||'normal'); this.reset(); }
+PlankJudge.prototype=Object.create(Counter.prototype);
+PlankJudge.prototype.setLevel=function(l){ this.tol=LEVELS.plank[l]||0.08; };
+PlankJudge.prototype.line=function(){ return 0.6; };
+PlankJudge.prototype.reset=function(){ this.resetBase(); this.held=0; this.prevT=null; this.goodSince=null; this.good=false; this.pose=''; this.ready=true; };
+PlankJudge.prototype.push=function(t,lm){
+  const dt=this.prevT===null?0:Math.max(0,Math.min(0.25,t-this.prevT)); this.prevT=t; this.lastT=t;
+  const J=sideOf(lm);
+  this.visible=seen(lm,J.S)||seen(lm,0);
+  const A=seen(lm,J.A)?J.A:J.K;
+  this.full=[J.S,J.H].every(i=>seen(lm,i))&&seen(lm,A);
+  let good=false, pose='lie';
+  if(this.full){
+    const S=lm[J.S],H=lm[J.H],F=lm[A];
+    const horiz=Math.abs(F.y-S.y)<0.8*Math.abs(F.x-S.x)&&Math.abs(F.x-S.x)>0.12;   // 팔을 세우면 비스듬한 경사로 — 40°까지는 버티기 자세로 봄
+    // 버티기: 팔꿈치(또는 손)가 어깨 아래 바닥을 짚고, 어깨가 바닥에서 위팔 길이의 절반 넘게 들려 있어야 함 — 바닥에 엎드려 누운 것과 구분
+    const sup=[J.E,J.W].filter(i=>seen(lm,i)).map(i=>lm[i]);
+    const floorY=sup.length?Math.max(...sup.map(p=>p.y)):S.y;
+    const upper=seen(lm,J.E)?Math.max(0.03,dist(S,lm[J.E])):0.08;
+    // 팔이 기둥처럼 서 있어야 함: 어깨→팔꿈치(없으면 손목)가 아래로 곧게(수직에서 45° 안쪽) — 배를 대고 엎드리면 팔이 눕혀져 있어서 걸러짐
+    const P=seen(lm,J.E)?lm[J.E]:(seen(lm,J.W)?lm[J.W]:null);
+    const armUp=!!P&&(P.y-S.y)/Math.max(0.02,dist(S,P))>0.7;
+    // 어깨가 발끝보다 확실히 높아야 함(몸 길이의 6% 넘게) — 바닥에 붙으면 어깨와 발 높이가 같아짐
+    const slopeOk=(F.y-S.y)>0.06*Math.max(0.05,dist(S,F));
+    const lifted=floorY-S.y>0.5*upper&&armUp&&slopeOk;
+    const support=sup.length>0&&lifted;
+    this.lifted=lifted;
+    const len=Math.max(0.05,dist(S,F)), yl=S.y+(F.y-S.y)*((H.x-S.x)/((F.x-S.x)||1e-6)), off=(H.y-yl)/len;
+    this.meter=horiz?Math.max(0,Math.min(1,1-Math.abs(off)/(this.tol*2)))*1.2:0;
+    // 머리도 어깨~발끝 선의 연장선 가까이 (고개가 푹 숙거나 젖혀지면 알려 줌)
+    const hd=[7,8,0].find(i=>seen(lm,i)); let headOff=0;
+    if(hd!==undefined){ const P=lm[hd], yh=S.y+(F.y-S.y)*((P.x-S.x)/((F.x-S.x)||1e-6)); headOff=(P.y-yh)/len; }
+    if(!horiz) pose='lie'; else if(!support) pose='flat'; else if(off>this.tol) pose='sag'; else if(off<-this.tol) pose='pike'; else if(Math.abs(headOff)>this.tol*2.5) pose='head'; else { pose='ok'; good=true; }
+  } else this.meter=0;
+  this.pose=pose;
+  if(good){ if(this.goodSince===null) this.goodSince=t; if(t-this.goodSince>=0.5) this.held+=dt; } else this.goodSince=null;
+  this.good=good&&this.goodSince!==null&&t-this.goodSince>=0.5;
+  this.count=Math.floor(this.held);
+  return this.state();
+};
+PlankJudge.prototype.state=function(){ const s=Counter.prototype.state.call(this); s.good=this.good; s.pose=this.pose; s.held=this.held; return s; };
+/* 무릎 높이 들기(제자리 달리기): 무릎이 엉덩이 높이 가까이 올라오면 1회 — 왼쪽·오른쪽 각각, 내려갔다 다시 올라와야 다음 회 */
+function HighKneeJudge(level){ Counter.call(this); this.setLevel(level||'normal'); this.reset(); }
+HighKneeJudge.prototype=Object.create(Counter.prototype);
+HighKneeJudge.prototype.setLevel=function(l){ this.th=LEVELS.highknee[l]??-0.3; };
+HighKneeJudge.prototype.line=function(){ return (this.th+1)*1.2/1.2; };
+HighKneeJudge.prototype.reset=function(){ this.resetBase(); this.thigh=null; this.up={L:false,R:false}; this.got={L:false,R:false}; this.ready=false; this.n=0; this.left=0; this.right=0; };
+HighKneeJudge.prototype.push=function(t,lm){
+  this.lastT=t; this.visible=seen(lm,11)||seen(lm,12)||seen(lm,0);
+  this.full=[23,24,25,26].every(i=>seen(lm,i,0.5));
+  if(!this.full) return this.state();
+  const lifts={};
+  [['L',23,25],['R',24,26]].forEach(([k,h,kn])=>{ const d=lm[kn].y-lm[h].y; if(this.thigh===null||d>this.thigh) this.thigh=this.thigh===null?d:this.thigh+(d-this.thigh)*0.3; lifts[k]=-(d/Math.max(0.03,this.thigh)); });
+  if(this.thigh!==null) this.thigh+=0;            // 허벅지 길이는 서 있을 때(무릎이 가장 낮을 때) 기준
+  this.n++; this.ready=this.n>10;
+  const best=Math.max(lifts.L,lifts.R);
+  this.meter=Math.max(0,Math.min(1.2,best+1));     // -1(서 있음) → 0, 0(엉덩이 높이) → 1
+  if(!this.ready) return this.state();
+  ['L','R'].forEach(k=>{
+    if(!this.up[k]&&lifts[k]>this.th){ this.up[k]=true; if(k==='L') this.left++; else this.right++; this.got[k]=true;
+      if(this.got.L&&this.got.R){ this.rep(t); this.got={L:false,R:false}; } }   // 왼쪽·오른쪽 한 번씩 들어야 1회
+    else if(this.up[k]&&lifts[k]<this.th-0.35) this.up[k]=false;
+  });
+  this.phase=(this.up.L||this.up.R)?'down':'up';
+  return this.state();
+};
+HighKneeJudge.prototype.state=function(){ const s=Counter.prototype.state.call(this); s.left=this.left; s.right=this.right; return s; };
+/*JUDGE-END*/
+const JUDGES = { jack: JackJudge, squat: SquatJudge, highknee: HighKneeJudge, plank: PlankJudge };
+const CAM_LEVEL = "normal";   // easy / normal / hard — 위 Down 판정기와 같은 기준
+
+const CAM = {
+  on: false, ready: false, stream: null, landmarker: null, raf: 0,
+  video: null, canvas: null, ctx: null, lastVideoT: -1, t0: 0,
+  judge: [null, null, null], seen: [false, false, false],
+  counting: false
+};
+const camValue = p => { const j = CAM.judge[p]; if (!j) return 0; return S.curr && S.curr.hold ? Math.floor(j.held || 0) : j.count; };
+
+function camReset() {
+  const kind = S.curr && S.curr.cam;
+  [1, 2].forEach(p => { CAM.judge[p] = kind && JUDGES[kind] ? new JUDGES[kind](CAM_LEVEL) : null; });
+  CAM.t0 = performance.now();
+}
+
+async function camLoadModel() {
+  if (CAM.landmarker) return;
+  const CDN = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+  const MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+  const mod = await import(CDN + "/vision_bundle.mjs");
+  const vision = await mod.FilesetResolver.forVisionTasks(CDN + "/wasm");
+  const opt = d => ({ baseOptions: { modelAssetPath: MODEL, delegate: d }, runningMode: "VIDEO", numPoses: 2,
+    minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
+  try { CAM.landmarker = await mod.PoseLandmarker.createFromOptions(vision, opt("GPU")); }
+  catch (e) { CAM.landmarker = await mod.PoseLandmarker.createFromOptions(vision, opt("CPU")); }
+}
+
+async function camStart() {
+  if (CAM.on) return true;
+  if (!(location.protocol === "http:" || location.protocol === "https:")) {
+    alert("카메라는 파일을 직접 열면 켤 수 없습니다.\nserver.js 를 실행한 뒤 http://localhost:8080 으로 여세요.");
+    return false;
+  }
+  try {
+    CAM.on = true;
+    camReset();
+    renderPlayStage();
+    try {
+      CAM.stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" }, audio: false });
+    } catch (e1) {
+      CAM.stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });   // 외장 웹캠 등 facingMode 없는 기기
+    }
+    const badge = $("camStatus");
+    if (badge) badge.textContent = "판정 모델 내려받는 중… (처음 한 번만, 10초 정도)";
+    await camLoadModel();
+    CAM.ready = true;
+    camAttach();
+    return true;
+  } catch (e) {
+    CAM.on = false; CAM.ready = false;
+    if (CAM.stream) { CAM.stream.getTracks().forEach(t => t.stop()); CAM.stream = null; }
+    alert("카메라를 켜지 못했습니다.\n" + (e && e.message ? e.message : e));
+    renderPlayStage();
+    return false;
+  }
+}
+
+function camStop() {
+  cancelAnimationFrame(CAM.raf); CAM.raf = 0;
+  if (CAM.stream) { CAM.stream.getTracks().forEach(t => t.stop()); CAM.stream = null; }
+  CAM.on = false; CAM.ready = false; CAM.counting = false;
+  CAM.video = CAM.canvas = CAM.ctx = null;
+}
+
+// 화면이 다시 그려질 때마다 video·canvas 를 새 자리에 붙임
+function camAttach() {
+  const v = $("camVideo"), c = $("camCanvas");
+  if (!v || !c || !CAM.stream) return;
+  CAM.video = v; CAM.canvas = c; CAM.ctx = c.getContext("2d");
+  if (v.srcObject !== CAM.stream) { v.srcObject = CAM.stream; v.play().catch(() => {}); }
+  cancelAnimationFrame(CAM.raf);
+  const loop = () => { CAM.raf = requestAnimationFrame(loop); camFrame(); };
+  CAM.raf = requestAnimationFrame(loop);
+}
+
+function camFrame() {
+  const v = CAM.video, c = CAM.canvas, ctx = CAM.ctx;
+  if (!v || !c || !ctx || !CAM.landmarker || v.readyState < 2) return;
+  if (c.width !== v.videoWidth || c.height !== v.videoHeight) { c.width = v.videoWidth || 640; c.height = v.videoHeight || 480; }
+  const W = c.width, H = c.height;
+
+  // 거울처럼 보이게 좌우 반전해서 그림
+  ctx.save(); ctx.translate(W, 0); ctx.scale(-1, 1); ctx.drawImage(v, 0, 0, W, H); ctx.restore();
+
+  const now = performance.now();
+  let poses = [];
+  if (v.currentTime !== CAM.lastVideoT) {
+    CAM.lastVideoT = v.currentTime;
+    const res = CAM.landmarker.detectForVideo(v, now);
+    poses = (res && res.landmarks) || [];
+    CAM.lastPoses = poses;
+  } else poses = CAM.lastPoses || [];
+  const t = (now - CAM.t0) / 1000;
+
+  // 거울 기준 x 로 왼쪽·오른쪽 배정 (화면 왼쪽에 보이는 사람 = 왼쪽 짝꿍)
+  const tagged = poses.map(lm => ({ lm, mx: 1 - (lm[11].x + lm[12].x) / 2 })).sort((a, b) => a.mx - b.mx);
+  let assign = [];
+  if (tagged.length >= 2) assign = [[1, tagged[0]], [2, tagged[tagged.length - 1]]];
+  else if (tagged.length === 1) assign = [[tagged[0].mx < 0.5 ? 1 : 2, tagged[0]]];
+
+  CAM.seen = [false, false, false];
+  const target = (S.curr && S.curr.target) || 10;
+  const hints = ["", "", ""];
+  assign.forEach(([p, tg]) => {
+    CAM.seen[p] = true;
+    const j = CAM.judge[p];
+    if (!j) return;
+    const before = camValue(p);
+    const st = CAM.counting ? j.push(t, tg.lm) : (j.visible = true, j.full = true, j.state());
+    const after = camValue(p);
+    if (!j.full) hints[p] = "몸 전체가 보이게 물러나세요";
+    else if (st.why && t - st.whyT < 1.2) hints[p] = CAM_HINT[st.why] || "";
+    if (after > before && CAM.counting) {
+      beep("tick");
+      if (!S.curr.hold && after >= target && S.phase === "play") { CAM.counting = false; claimWin(p); return; }
+    }
+    camDrawSkeleton(ctx, tg.lm, W, H, p === 1 ? "#60a5fa" : "#fb7185", j);
+  });
+
+  // 가운데 선
+  ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.setLineDash([8, 8]); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke(); ctx.setLineDash([]);
+
+  const label = (p, x) => {
+    ctx.font = "bold 20px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center";
+    ctx.fillStyle = CAM.seen[p] ? (p === 1 ? "#93c5fd" : "#fda4af") : "rgba(255,255,255,0.45)";
+    ctx.fillText(CAM.seen[p] ? getName(p) : (p === 1 ? "왼쪽 비어 있음" : "오른쪽 비어 있음"), x, 28);
+    if (hints[p]) { ctx.font = "bold 17px 'Noto Sans KR', sans-serif"; ctx.fillStyle = "#fde047"; ctx.fillText(hints[p], x, 54); }
+    if (CAM.counting || camValue(p) > 0) {
+      const txt = S.curr && S.curr.hold ? camValue(p) + "초" : String(camValue(p));
+      ctx.font = "900 64px Orbitron, monospace";
+      ctx.fillStyle = "#fde047"; ctx.strokeStyle = "rgba(0,0,0,0.7)"; ctx.lineWidth = 6;
+      ctx.strokeText(txt, x, H - 24); ctx.fillText(txt, x, H - 24);
+    }
+  };
+  label(1, W / 4); label(2, (W * 3) / 4);
+
+  const badge = $("camStatus");
+  if (badge) badge.textContent = S.phase === "play" ? (CAM_GUIDE[S.curr.cam] || "카메라가 세는 중") : "자리를 잡으세요: 왼쪽 짝꿍은 화면 왼쪽, 오른쪽 짝꿍은 화면 오른쪽 · 몸 전체가 보이게";
+}
+
+const CAM_GUIDE = {
+  jack: "4박자가 1회: 다리 벌리고 팔 어깨 높이 → 차렷 → 다리 벌리고 만세 → 차렷 (박자마다 살짝 점프)",
+  highknee: "무릎을 엉덩이 높이까지! 왼쪽·오른쪽 한 번씩 들면 1회",
+  squat: "허벅지가 수평 가까이 내려갔다 올라오면 1회",
+  plank: "옆모습이 보이게! 바른 자세일 때만 초가 올라갑니다"
+};
+const CAM_HINT = {
+  fast: "너무 빨라요", shallow: "더 깊이 앉기", jump: "박자마다 점프!", arms: "팔도 같이", legs: "다리도 같이",
+  orderT: "먼저 팔 어깨 높이", orderU: "이번엔 만세", higher: "더 높이"
+};
+
+const SKEL = [[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[24,26],[26,28]];
+function camDrawSkeleton(ctx, lm, W, H, color, j) {
+  const px = p => [(1 - p.x) * W, p.y * H];
+  const hot = j && (j.phase === "down" || j.phase === "s1" || j.phase === "s3" || j.good);
+  ctx.strokeStyle = hot ? "#5FE0F0" : color; ctx.lineWidth = 4; ctx.lineCap = "round";
+  SKEL.forEach(([a, b]) => { if ((lm[a].visibility ?? 1) < 0.4 || (lm[b].visibility ?? 1) < 0.4) return; const [x1, y1] = px(lm[a]), [x2, y2] = px(lm[b]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); });
+  ctx.fillStyle = "#fff";
+  [0, 15, 16, 23, 24, 25, 26, 27, 28].forEach(i => { if ((lm[i].visibility ?? 1) < 0.4) return; const [x, y] = px(lm[i]); ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill(); });
+}
 
 function setButtons(active) {
   [1, 2].forEach(p => {
@@ -977,6 +1415,8 @@ function updateScoreUI() {
 
 // 1. 초기 단계 선택 화면
 function showSetup() {
+  clearTimers();
+  camStop();
   S.phase = "setup";
   S.round = 0;
   S.wins = [0, 0, 0];
@@ -1003,7 +1443,7 @@ function showSetup() {
           </button>
         `).join("")}
       </div>
-      <button class="gold-action-btn" id="startBtn">🚀 ${S.level}단계 대결 시작!</button>
+      <button class="gold-action-btn" id="startBtn" data-primary>🚀 ${S.level}단계 대결 시작!</button>
     </div>
 
     <div class="challenge-footer">
@@ -1026,51 +1466,74 @@ function showSetup() {
   };
 }
 
-// 2. 운동 대결 화면
+// 2. 운동 대결 화면 — 준비(시범 보기) → 3·2·1 → 시작 순서
 function nextExercise() {
+  clearTimers();
   S.curr = S.list[S.round];
   S.round++;
-  S.phase = "play";
+  S.phase = "ready";
   S.showingVideo = false;
-  beep("start");
+  S.holdStart = 0;
+  S.holdSec = 0;
+  if (!S.curr.cam) camStop(); else camReset();
   updateScoreUI();
-
+  setButtons(false);   // 시작 신호 전에는 승리 버튼이 눌리지 않음 (부정 출발 방지)
   renderPlayStage();
-  setButtons(true);
 }
 
 function renderPlayStage() {
   const c = S.curr;
   const ytInfo = parseYouTubeInfo(c.yt);
+  const total = LEVEL_INFO[S.level].count;
 
   $("bannerTitle").textContent = `짝꿍 운동 대결: ${c.n}`;
 
-  center.innerHTML = `
-    <div class="center-visual-wrap">
-      <div class="character-stage ${S.showingVideo ? "video-mode" : ""}" id="charStage">
-        ${S.showingVideo && ytInfo
-          ? `<iframe src="${ytInfo.embedUrl}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
-          : getMotionTrainerSVG(c.id)
-        }
-      </div>
+  let action = "";
+  if (S.phase === "ready") {
+    action = `<button class="gold-action-btn" id="roundStartBtn" data-primary>준비! 시작</button>`;
+  } else if (S.phase === "play" && c.hold) {
+    action = `<div class="hold-timer" id="holdTimer">${fmtSec(S.holdSec)}</div>`;
+  }
 
-      <button class="metal-pill-btn" id="watchVideoBtn">
-        <span class="play-icon-box">▶</span>
-        <span>${S.showingVideo ? "캐릭터 동작 보기" : "운동 영상 보기"}</span>
-      </button>
+  center.innerHTML = `
+    <div class="stage-head">
+      <span class="round-chip">${S.round} / ${total}판</span>
+      <span class="cat-badge cat-${c.t}">${CAT[c.t].label}</span>
     </div>
 
-    <div class="challenge-footer">
+    <div class="center-visual-wrap">
+      <div class="character-stage ${CAM.on ? "cam-mode" : S.showingVideo ? "video-mode" : ""}" id="charStage">
+        ${CAM.on
+          ? `<video id="camVideo" playsinline muted></video><canvas id="camCanvas"></canvas>`
+          : S.showingVideo && ytInfo
+            ? `<iframe src="${ytInfo.embedUrl}" referrerpolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
+            : getMotionTrainerSVG(c.id)
+        }
+      </div>
+      ${CAM.on ? `<div class="cam-status" id="camStatus">카메라 켜는 중…</div>` : ""}
+
+      <div class="btn-row">
+        <button class="metal-pill-btn ${c.cam ? "small" : ""}" id="watchVideoBtn" ${S.phase === "countdown" ? "disabled" : ""} ${CAM.on ? 'style="display:none"' : ""}>
+          <span class="play-icon-box">▶</span>
+          <span>${S.showingVideo ? "캐릭터 동작 보기" : "운동 영상 보기"}</span>
+        </button>
+        ${c.cam ? `<button class="metal-pill-btn small ${CAM.on ? "cam-on" : ""}" id="camBtn" ${S.phase === "countdown" ? "disabled" : ""}>📷 ${CAM.on ? "카메라 판정 끄기" : "카메라 판정 켜기"}</button>` : ""}
+      </div>
+    </div>
+
+    <div class="challenge-footer" id="playFooter">
       <div class="section-gold-title">도전 과제</div>
       <div class="challenge-goal">
         <span>⏱️</span>
         <span>${c.g}</span>
       </div>
+      ${c.tip ? `<div class="tip-line">안전 약속: ${c.tip}</div>` : ""}
+      ${action}
     </div>
   `;
 
   $("watchVideoBtn").onclick = () => {
-    if (!ytInfo) return;
+    if (!ytInfo || S.phase === "countdown") return;
     if (canEmbedYouTubeDirectly()) {
       S.showingVideo = !S.showingVideo;
       renderPlayStage();
@@ -1078,11 +1541,85 @@ function renderPlayStage() {
       openYouTubePopup(ytInfo.watchUrl);
     }
   };
+
+  const cb = $("camBtn");
+  if (cb) cb.onclick = () => {
+    if (S.phase === "countdown") return;
+    if (CAM.on) { camStop(); renderPlayStage(); }
+    else { S.showingVideo = false; camStart(); }
+  };
+  if (CAM.on && CAM.ready) camAttach();
+
+  const rs = $("roundStartBtn");
+  if (rs) rs.onclick = startCountdown;
+}
+
+function showOverlay(text, isGo) {
+  const old = center.querySelector(".countdown-overlay");
+  if (old) old.remove();
+  const ov = document.createElement("div");
+  ov.className = "countdown-overlay" + (isGo ? " go" : "");
+  ov.innerHTML = `<span>${text}</span>`;
+  center.appendChild(ov);
+  return ov;
+}
+
+function startCountdown() {
+  if (S.phase !== "ready") return;
+  S.phase = "countdown";
+  // 화면을 다시 그리지 않고 버튼만 바꿔서, 켜 둔 영상이 끊기지 않게 함
+  const rs = $("roundStartBtn");
+  if (rs) rs.remove();
+  const vb = $("watchVideoBtn");
+  if (vb) vb.disabled = true;
+
+  let n = 3;
+  const step = () => {
+    if (S.phase !== "countdown") return;
+    if (n > 0) {
+      showOverlay(n);
+      beep("tick");
+      n--;
+      cdTimer = setTimeout(step, 800);
+    } else {
+      goPlay();
+    }
+  };
+  step();
+}
+
+function goPlay() {
+  S.phase = "play";
+  beep("start");
+  const ov = showOverlay("시작!", true);
+  setTimeout(() => ov.remove(), 750);
+
+  const vb = $("watchVideoBtn");
+  if (vb) vb.disabled = false;
+  const cb = $("camBtn");
+  if (cb) cb.disabled = false;
+  if (CAM.on) { camReset(); CAM.counting = true; }
+
+  if (S.curr.hold) {
+    const footer = $("playFooter");
+    if (footer) footer.insertAdjacentHTML("beforeend", `<div class="hold-timer" id="holdTimer">${fmtSec(0)}</div>`);
+    S.holdStart = performance.now();
+    holdTimer = setInterval(() => {
+      S.holdSec = (performance.now() - S.holdStart) / 1000;
+      const el = $("holdTimer");
+      if (el) el.textContent = fmtSec(S.holdSec);
+    }, 100);
+  }
+  setButtons(true);
 }
 
 // 3. 양쪽 '승리!' 터치 시 결과 화면 (중간에 2승을 먼저 해도 3판 끝까지 진행)
 function claimWin(winner) {
   if (S.phase !== "play") return;
+  if (S.curr.hold && S.holdStart) S.holdSec = (performance.now() - S.holdStart) / 1000;
+  CAM.counting = false;
+  cancelAnimationFrame(CAM.raf); CAM.raf = 0;
+  clearTimers();
   S.phase = "result";
   S.wins[winner]++;
   beep("win");
@@ -1095,6 +1632,12 @@ function claimWin(winner) {
 
   const totalRounds = LEVEL_INFO[S.level].count;
   const isFinished = S.round >= totalRounds;
+  const holdLine = S.curr.hold && S.holdStart
+    ? `<div class="hold-timer" style="font-size:clamp(22px,2.4vw,30px);">버틴 시간 ${fmtSec(S.holdSec)}</div>`
+    : "";
+  const camLine = CAM.on && S.curr.cam
+    ? `<div class="hold-timer" style="font-size:clamp(20px,2.2vw,28px);">카메라 판정 ${getName(1)} ${camValue(1)}${S.curr.hold ? "초" : "회"} · ${getName(2)} ${camValue(2)}${S.curr.hold ? "초" : "회"}</div>`
+    : "";
 
   center.innerHTML = `
     <div>
@@ -1107,7 +1650,9 @@ function claimWin(winner) {
       <div style="font-size:clamp(28px,3.2vw,38px); font-weight:900; color:var(--gold-bright);">
         ${getName(winner)} 1승 획득!
       </div>
-      <button class="gold-action-btn" id="nextBtn">
+      ${holdLine}
+      ${camLine}
+      <button class="gold-action-btn" id="nextBtn" data-primary>
         ${isFinished ? "🏆 최종 결과 보기" : `다음 운동 (${S.round + 1}/${totalRounds}) ▶`}
       </button>
     </div>
@@ -1127,12 +1672,17 @@ function claimWin(winner) {
 
 // 4. 최종 우승 화면
 function showFinal() {
+  clearTimers();
+  camStop();
   S.phase = "final";
   beep("final");
-  const winner = S.wins[1] >= S.wins[2] ? 1 : 2;
+  const isDraw = S.wins[1] === S.wins[2];
+  const winner = S.wins[1] > S.wins[2] ? 1 : 2;
   const nextLv = S.level < 3 ? S.level + 1 : 1;
 
-  $("bannerTitle").textContent = `${S.level}단계 최종 우승!`;
+  $("bannerTitle").textContent = isDraw ? `${S.level}단계 무승부!` : `${S.level}단계 최종 우승!`;
+  [1, 2].forEach(p => box[p].classList.remove("winner-flash"));
+  if (!isDraw) { void box[winner].offsetWidth; box[winner].classList.add("winner-flash"); }
 
   center.innerHTML = `
     <div>
@@ -1143,9 +1693,9 @@ function showFinal() {
     <div class="center-visual-wrap" style="gap:16px;">
       <div style="font-size:78px; line-height:1;">🏆</div>
       <div style="font-size:clamp(28px,3.4vw,40px); font-weight:900; color:var(--gold-bright);">
-        ${getName(winner)} 승리!
+        ${isDraw ? "무승부! 둘 다 최고!" : `${getName(winner)} 승리!`}
       </div>
-      <button class="gold-action-btn" id="nextLvBtn">
+      <button class="gold-action-btn" id="nextLvBtn" data-primary>
         ${S.level < 3 ? `🚀 ${nextLv}단계 챌린지로 이동!` : "🔄 1단계부터 다시 도전"}
       </button>
     </div>
@@ -1177,16 +1727,31 @@ document.addEventListener("keydown", e => {
   const k = e.key.toLowerCase();
   if (k === "a" || k === "ㅁ") claimWin(1);
   if (k === "l" || k === "ㅣ") claimWin(2);
+  // 엔터·스페이스: 지금 화면의 주 버튼(시작/준비! 시작/다음 운동/다음 단계)을 누름 — 무선 프레젠터로도 진행 가능
+  if (k === "enter" || e.key === " ") {
+    e.preventDefault();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    const primary = center.querySelector("[data-primary]");
+    if (primary) primary.click();
+  }
 });
+
+// 대결 도중 실수로 단계 버튼·처음으로를 눌러 점수가 날아가지 않게 확인
+function okToLeave() {
+  const midGame = ["ready", "countdown", "play", "result"].includes(S.phase)
+    && (S.wins[1] + S.wins[2] > 0 || S.phase === "play" || S.phase === "countdown");
+  return !midGame || confirm("진행 중인 대결 점수가 초기화됩니다. 이동할까요?");
+}
 
 [1, 2, 3].forEach(lv => {
   $("lv" + lv + "Quick").onclick = () => {
+    if (!okToLeave()) return;
     S.level = lv;
     beep("start");
     showSetup();
   };
 });
-$("resetBtn").onclick = showSetup;
+$("resetBtn").onclick = () => { if (okToLeave()) showSetup(); };
 
 showSetup();
 </script>
